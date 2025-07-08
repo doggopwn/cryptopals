@@ -62,7 +62,6 @@ int main(int argc, char* argv[]){
 		int err = htoa(reader.line, len, &ascii, &ascii_len);
 		if (!err){
 			fwrite(ascii, 1, ascii_len, stdout);
-			printf("\n");
 			free(ascii);
 		} else {
 			free(ascii);

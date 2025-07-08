@@ -24,7 +24,7 @@ char* read_stdin(size_t* read_len_ptr){
 	if (input[read_len-1] == '\n'){
 		input = realloc(input, read_len-1);
 		if (input == NULL){
-			fprintf(stderr, "Failed to reallocate memory for input buffer");
+			fprintf(stderr, "Failed to reallocate memory for input buffer\n");
 			free(input);
 			return "";
 		}
