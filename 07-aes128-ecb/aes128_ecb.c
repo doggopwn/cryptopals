@@ -6,35 +6,24 @@
 #include <stdint.h>
 #include "read_stdin.h"
 #include "get_flagon.h"
+#include "pkcs7.h"
 
 #define ECB 1
 #include "aes.h"
 
 int aes128_ecb(unsigned char* enc, size_t enc_len, unsigned char** out, size_t* out_len, unsigned char* key, bool encrypt){
-	if (key == NULL || strlen((char*)key) != 16) {
-		fprintf(stderr, "Key needs to be exactly 16 characters.\n");
-		return 1;
-	}
 	if (!encrypt && enc_len % 16){
 		fprintf(stderr, "Input data is not a multiple of 16 lengthwise.\n");
 		return 1;
 	}
 
-	int block_count = (int)ceil(enc_len/16.0);
-	int buffer_len = block_count*16; // length of full padded buffer
-									 //
-	unsigned int padding_len = buffer_len - enc_len;
-	unsigned char padding_char = (unsigned char)padding_len;
+	unsigned char* buffer = malloc(enc_len);
+	memcpy(buffer, enc, enc_len);
+	
+	size_t buffer_len = enc_len;
+	pkcs7_pad(&buffer, &buffer_len, 16);	
 
-	unsigned char* buffer = calloc(buffer_len, 1); // initialize buffer
-	memcpy(buffer, enc, enc_len); // copy enc to buffer
-							
-	for (int i = enc_len; i < buffer_len; i++){ // add padding to initial data
-		buffer[i] = padding_char;
-	}
-
-
-	for (int i = 0; i < enc_len; i += 16){
+	for (int i = 0; i < buffer_len; i += 16){
 		if (encrypt){
 			AES128_ECB_encrypt(buffer+i, key, buffer+i);
 		} else {
@@ -43,9 +32,8 @@ int aes128_ecb(unsigned char* enc, size_t enc_len, unsigned char** out, size_t* 
 	}
 
 	if (out != NULL) {
+		free(*out);
 		*out = buffer;
-	} else {
-		free(buffer);
 	}
 	if (out_len != NULL) *out_len = buffer_len;
 	return 0;
