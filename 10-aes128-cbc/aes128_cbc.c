@@ -49,7 +49,8 @@ int aes128_cbc(AES128* ctx, unsigned char** out, size_t* out_len){
 			fxor(buffer, 16, prev, 16);
 		}
 
-		aes128_ecb(buffer, 16, &buffer, NULL, ctx->key, ctx->encrypt);
+		ctx->enc = buffer;
+		aes128_ecb(ctx, &buffer, NULL);
 
 		if (!ctx->encrypt){
 			fxor(buffer, 16, prev, 16);

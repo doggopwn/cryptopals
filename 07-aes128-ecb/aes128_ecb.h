@@ -1,2 +1,6 @@
 #include <stdbool.h>
-int aes128_ecb(unsigned char* enc, size_t enc_len, unsigned char** out, size_t* out_len, unsigned char* key, bool encrypt);
+#ifndef AES_H
+#define AES_H
+#include "aes_def.h"
+#endif
+int aes128_ecb(AES128* ctx, unsigned char** out, size_t* out_len);

@@ -7,27 +7,28 @@
 #include "read_stdin.h"
 #include "get_flagon.h"
 #include "pkcs7.h"
+#include "aes128_cbc.h"
 
 #define ECB 1
 #include "aes.h"
 
-int aes128_ecb(unsigned char* enc, size_t enc_len, unsigned char** out, size_t* out_len, unsigned char* key, bool encrypt){
-	if (!encrypt && enc_len % 16){
+int aes128_ecb(AES128* ctx, unsigned char** out, size_t* out_len){
+	if (!ctx->encrypt && ctx->enc_len % 16){
 		fprintf(stderr, "Input data is not a multiple of 16 lengthwise.\n");
 		return 1;
 	}
 
-	unsigned char* buffer = malloc(enc_len);
-	memcpy(buffer, enc, enc_len);
+	unsigned char* buffer = malloc(ctx->enc_len);
+	memcpy(buffer, ctx->enc, ctx->enc_len);
 	
-	size_t buffer_len = enc_len;
+	size_t buffer_len = ctx->enc_len;
 	pkcs7_pad(&buffer, &buffer_len, 16);	
 
 	for (int i = 0; i < buffer_len; i += 16){
-		if (encrypt){
-			AES128_ECB_encrypt(buffer+i, key, buffer+i);
+		if (ctx->encrypt){
+			AES128_ECB_encrypt(buffer+i, ctx->key, buffer+i);
 		} else {
-			AES128_ECB_decrypt(buffer+i, key, buffer+i);
+			AES128_ECB_decrypt(buffer+i, ctx->key, buffer+i);
 		}
 	}
 
@@ -52,13 +53,20 @@ int main(int argc, char* argv[]){
 	unsigned char* key = (unsigned char*)argv[argidx];
 
 	size_t input_len;
-	char* input;
-	input = read_stdin(&input_len);
+	char* input = read_stdin(&input_len);
 
+	AES128 cipher = {
+		.enc = input,
+		.enc_len = input_len,
+		.key = key,
+		.iv = NULL,
+		.encrypt = !decrypt
+	};
+	
 	size_t output_len;
 	unsigned char* output;
 	int err;
-	err = aes128_ecb((unsigned char*)input, input_len, &output, &output_len, key, !decrypt);
+	err = aes128_ecb(&cipher, &output, &output_len);
 
 	int ret;
 	if (!err){

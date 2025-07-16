@@ -1,5 +1,6 @@
 //LIBONLY//
 #include <stdbool.h>
+#include <stddef.h>
 char* read_stdin();
 
 typedef struct {
